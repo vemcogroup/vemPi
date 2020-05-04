@@ -19,7 +19,7 @@ while true; do
     elif [[ $line =~ ^([_[:alpha:]][_[:alnum:]]*)"="(.*) ]]; then
       declare "${arrname}"["${BASH_REMATCH[1]}"]="${BASH_REMATCH[2]}"
     fi
-  done <kiosk.ini
+  done < /home/pi/vemcount/kiosk.ini
 
   if ! [[ $KIOSKPAGE == "${OPTIONS[url]}" ]] || ! [[ $ZOOM == "${OPTIONS[zoom]}" ]]; then
     if ! [[ "$ZOOM" == "${OPTIONS[zoom]}" ]]; then
