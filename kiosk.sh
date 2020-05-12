@@ -21,13 +21,14 @@ while true; do
     fi
   done < /home/pi/vemcount/kiosk.ini
 
-  if ! [[ $KIOSKPAGE == "${OPTIONS[url]}" ]] || ! [[ $ZOOM == "${OPTIONS[zoom]}" ]]; then
+  if ! [[ $KIOSKPAGE == "${OPTIONS[url]}" ]] || ! [[ $ZOOM == "${OPTIONS[zoom]}" ]] || [ -f "/tmp/reload-chromium" ]; then
     if ! [[ "$ZOOM" == "${OPTIONS[zoom]}" ]]; then
       pkill -o chromium
     fi
     KIOSKPAGE="${OPTIONS[url]}"
     ZOOM="${OPTIONS[zoom]}"
     /usr/bin/chromium-browser --force-device-scale-factor="$ZOOM" --hide-scrollbars --check-for-update-interval=7776000 --no-first-run --noerrdialogs --disable-infobars --kiosk "$KIOSKPAGE" &
+    rm "/tmp/reload-chromium"
   fi
 
   sleep 10
