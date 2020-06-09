@@ -151,6 +151,7 @@ def assert_armored(*names):
 
 def get_license_info():
     info = {
+        'ISSUER': None,
         'EXPIRED': None,
         'HARDDISK': None,
         'IFMAC': None,
@@ -160,6 +161,11 @@ def get_license_info():
         'CODE': None,
     }
     rcode = get_registration_code().decode()
+    if rcode.startswith('*VERSION:'):
+        index = rcode.find('\n')
+        info['ISSUER'] = rcode[9:index].split('.')[0].replace('-sn-1.txt', '')
+        rcode = rcode[index+1:]
+
     index = 0
     if rcode.startswith('*TIME:'):
         from time import ctime
@@ -190,6 +196,10 @@ def get_license_info():
 
 def get_license_code():
     return get_license_info()['CODE']
+
+
+def get_user_data():
+    return get_license_info()['DATA']
 
 
 def _match_features(patterns, s):
