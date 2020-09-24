@@ -31,6 +31,8 @@ arch_table = (
     ('arm', ('armv5',)),
     ('armv6', ('armv6l',)),
     ('armv7', ('armv7l',)),
+    ('ppc64', ('ppc64le',)),
+    ('mips32', ('mips',)),
     ('aarch32', ('aarch32',)),
     ('aarch64', ('aarch64', 'arm64'))
 )
@@ -121,6 +123,26 @@ def get_expired_days():
     prototype = PYFUNCTYPE(py_object)
     dlfunc = prototype(('get_expired_days', _pytransform))
     return dlfunc()
+
+
+@dllmethod
+def clean_obj(obj, kind):
+    prototype = PYFUNCTYPE(c_int, py_object, c_int)
+    dlfunc = prototype(('clean_obj', _pytransform))
+    return dlfunc(obj, kind)
+
+
+def clean_str(*args):
+    tdict = {
+        'str': 0,
+        'bytearray': 1,
+        'unicode': 2
+    }
+    for obj in args:
+        k = tdict.get(type(obj).__name__)
+        if k is None:
+            raise RuntimeError('Can not clean object: %s' % obj)
+        clean_obj(obj, k)
 
 
 def get_hd_info(hdtype, size=256):
@@ -232,7 +254,7 @@ def format_platform(platid=None):
     if plat == 'linux':
         cname, cver = platform.libc_ver()
         if cname == 'musl':
-            plat = 'alpine'
+            plat = 'musl'
         elif cname == 'libc':
             plat = 'android'
         elif cname == 'glibc':
@@ -271,7 +293,9 @@ def _load_library(path=None, is_runtime=0, platid=None, suffix=''):
     else:
         raise PytransformError('Platform %s not supported' % plat)
 
-    if platid is not None or not os.path.exists(filename) or not is_runtime:
+    if platid is not None and os.path.isfile(platid):
+        filename = platid
+    elif platid is not None or not os.path.exists(filename) or not is_runtime:
         libpath = platid if platid is not None and os.path.isabs(platid) else \
             os.path.join(path, plat_path, format_platform(platid))
         filename = os.path.join(libpath, os.path.basename(filename))
